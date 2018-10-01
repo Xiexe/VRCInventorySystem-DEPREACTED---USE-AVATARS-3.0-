@@ -1,0 +1,25 @@
+This inventory system was originally created by Error, Nepsy, and Weong. 
+
+I have edited it for ease of use. 
+
+To open the tool, find "Xiexe" at the top of the Unity Toolbar, go to "Tools" and then hit "Inventory Remapper"
+
+To use the tool, drop the bone for wherever you want your inventory to be in the "Inventory Location" slot.
+In the name field, type the name for what you want your animations to be.
+
+Then, hit generate. 
+
+The script will generate your inventory on the correct bone, and generate all the corresponding animation files. 
+
+You can now move objects into your slots. 
+
+To put objects in the inventory slots, position them relative to where you want, rotation, etc, in the scene, and then
+drag them into the inventory by moving it to 
+
+"Inv_(...) / Inv_X (Slot you want the item in) / Enable/ Disable / Object / YOURITEMHERE"
+
+
+You can now create an animation override controller, and throw the generated enable/disable animations into the emote slots. 
+The animations are generated under "InventorySysPrefabEdited / Editor / Generated / YOURBONENAME /"
+
+You should now be good to go, and have a functioning inventory ready to go when you upload your avatar!
