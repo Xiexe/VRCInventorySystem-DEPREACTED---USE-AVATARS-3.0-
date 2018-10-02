@@ -54,8 +54,6 @@ public class InvRemapper : EditorWindow {
 		}
 		pathToInv = string.Join("/", splitString);
 
-
-
 		string pathToEditor = findAssetPath() + "/Editor";
 		string pathToTemplate = pathToEditor + "/Templates/BehaviorKeyframeTemplate.anim";
 		string pathToGenerated = pathToEditor + "/Generated";
@@ -66,13 +64,7 @@ public class InvRemapper : EditorWindow {
 		}
 
 		CreateInvAndMoveObject(pathToTemplate, pathToGenerated, pathToInv, pathToEditor);
-
-
-		//Debug.Log("There are " + curves.Length + " curves, or maybe keyframes, who knows, in this animation.");
-
 	}
-
-//Global Disabling and single item generations
 
 	private void CreateInvAndMoveObject(string pathToTemplate, string pathToGenerated, string pathToInv, string pathToEditor){
 		Debug.Log(pathToInv);
@@ -160,38 +152,15 @@ public class InvRemapper : EditorWindow {
 			AssetDatabase.Refresh();
 		}
 
-		anim = (AnimationClip)AssetDatabase.LoadAssetAtPath(enableAnimLoc, typeof(AnimationClip));
-
-				Keyframe[] enableKeys = new Keyframe[2];
-				Keyframe enableBegin = new Keyframe(0, 1);
-				Keyframe enableEnd = new Keyframe(0.5f, 1);
-				enableBegin.outTangent = float.PositiveInfinity;
-				enableBegin.inTangent = float.NegativeInfinity;
-				enableEnd.inTangent = float.NegativeInfinity;
-				enableEnd.outTangent = float.PositiveInfinity;
-				enableKeys[0] = enableBegin;
-				enableKeys[1] = enableEnd;
-				AnimationCurve enableCurve = new AnimationCurve(enableKeys);
-
-				Keyframe[] disableKeys = new Keyframe[2];
-				Keyframe disableBegin = new Keyframe(0, 0);
-				Keyframe disableEnd = new Keyframe(0.5f, 0);
-				disableBegin.outTangent = float.PositiveInfinity;
-				disableBegin.inTangent = float.NegativeInfinity;
-				disableEnd.inTangent = float.NegativeInfinity;
-				disableEnd.outTangent = float.PositiveInfinity;
-				disableKeys[0] = disableBegin;
-				disableKeys[1] = disableEnd;
-				AnimationCurve disableCurve = new AnimationCurve(disableKeys);
-		
+			anim = (AnimationClip)AssetDatabase.LoadAssetAtPath(enableAnimLoc, typeof(AnimationClip));
 
 			if (pathToInv == ""){
-				anim.SetCurve("Inv_" + objName + "/ENABLE", typeof(UnityEngine.Behaviour), "m_Enabled", enableCurve);
-				anim.SetCurve("Inv_" + objName + "/ENABLE/DISABLE", typeof(UnityEngine.Behaviour), "m_Enabled", disableCurve);
+				anim.SetCurve("Inv_" + objName + "/ENABLE", typeof(UnityEngine.Behaviour), "m_Enabled", enableCurve());
+				anim.SetCurve("Inv_" + objName + "/ENABLE/DISABLE", typeof(UnityEngine.Behaviour), "m_Enabled", disableCurve());
 			}
 			else{
-				anim.SetCurve(pathToInv + "/Inv_" + objName + "/ENABLE", typeof(UnityEngine.Behaviour), "m_Enabled", enableCurve);
-				anim.SetCurve(pathToInv + "/Inv_" + objName + "/ENABLE/DISABLE", typeof(UnityEngine.Behaviour), "m_Enabled", disableCurve);
+				anim.SetCurve(pathToInv + "/Inv_" + objName + "/ENABLE", typeof(UnityEngine.Behaviour), "m_Enabled", enableCurve());
+				anim.SetCurve(pathToInv + "/Inv_" + objName + "/ENABLE/DISABLE", typeof(UnityEngine.Behaviour), "m_Enabled", disableCurve());
 			}
 
 			CreateDisable(pathToTemplate, pathToGenerated, pathToInv, objName);
@@ -226,49 +195,49 @@ public class InvRemapper : EditorWindow {
 
 //Helper functions
 	// Find File Path
-	private string findAssetPath()
-    {
-        string[] guids1 = AssetDatabase.FindAssets("InvRemapper", null);
-        string untouchedString = AssetDatabase.GUIDToAssetPath(guids1[0]);
-        string[] splitString = untouchedString.Split('/');
+		private string findAssetPath()
+		{
+			string[] guids1 = AssetDatabase.FindAssets("InvRemapper", null);
+			string untouchedString = AssetDatabase.GUIDToAssetPath(guids1[0]);
+			string[] splitString = untouchedString.Split('/');
 
-        ArrayUtility.RemoveAt(ref splitString, splitString.Length - 1);
-        ArrayUtility.RemoveAt(ref splitString, splitString.Length - 1);
+			ArrayUtility.RemoveAt(ref splitString, splitString.Length - 1);
+			ArrayUtility.RemoveAt(ref splitString, splitString.Length - 1);
 
-        filePath = string.Join("/", splitString);
-		return filePath;
-    }
+			filePath = string.Join("/", splitString);
+			return filePath;
+		}
+	// Create Disable Curves
+		private AnimationCurve disableCurve(){
 
-	private AnimationCurve disableCurve(){
+			Keyframe[] disableKeys = new Keyframe[2];
+			Keyframe disableBegin = new Keyframe(0, 0);
+			Keyframe disableEnd = new Keyframe(0.5f, 0);
+			disableBegin.outTangent = float.PositiveInfinity;
+			disableBegin.inTangent = float.NegativeInfinity;
+			disableEnd.inTangent = float.NegativeInfinity;
+			disableEnd.outTangent = float.PositiveInfinity;
+			disableKeys[0] = disableBegin;
+			disableKeys[1] = disableEnd;
+			AnimationCurve disableCurve = new AnimationCurve(disableKeys);
 
-		Keyframe[] disableKeys = new Keyframe[2];
-		Keyframe disableBegin = new Keyframe(0, 0);
-		Keyframe disableEnd = new Keyframe(0.5f, 0);
-		disableBegin.outTangent = float.PositiveInfinity;
-		disableBegin.inTangent = float.NegativeInfinity;
-		disableEnd.inTangent = float.NegativeInfinity;
-		disableEnd.outTangent = float.PositiveInfinity;
-		disableKeys[0] = disableBegin;
-		disableKeys[1] = disableEnd;
-		AnimationCurve disableCurve = new AnimationCurve(disableKeys);
+			return disableCurve;
+		}
+	// Create Enable Curves
+		private AnimationCurve enableCurve(){
 
-		return disableCurve;
-	}
+			Keyframe[] enableKeys = new Keyframe[2];
+			Keyframe enableBegin = new Keyframe(0, 1);
+			Keyframe enableEnd = new Keyframe(0.5f, 1);
+			enableBegin.outTangent = float.PositiveInfinity;
+			enableBegin.inTangent = float.NegativeInfinity;
+			enableEnd.inTangent = float.NegativeInfinity;
+			enableEnd.outTangent = float.PositiveInfinity;
+			enableKeys[0] = enableBegin;
+			enableKeys[1] = enableEnd;
+			AnimationCurve enableCurve = new AnimationCurve(enableKeys);
 
-	private AnimationCurve enableCurve(){
-
-		Keyframe[] enableKeys = new Keyframe[2];
-		Keyframe enableBegin = new Keyframe(0, 1);
-		Keyframe enableEnd = new Keyframe(0.5f, 1);
-		enableBegin.outTangent = float.PositiveInfinity;
-		enableBegin.inTangent = float.NegativeInfinity;
-		enableEnd.inTangent = float.NegativeInfinity;
-		enableEnd.outTangent = float.PositiveInfinity;
-		enableKeys[0] = enableBegin;
-		enableKeys[1] = enableEnd;
-		AnimationCurve enableCurve = new AnimationCurve(enableKeys);
-
-		return enableCurve;
-	}
+			return enableCurve;
+		}
 //------------------
 }
