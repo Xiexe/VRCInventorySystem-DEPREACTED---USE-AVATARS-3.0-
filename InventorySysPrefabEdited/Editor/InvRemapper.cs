@@ -54,9 +54,11 @@ public class InvRemapper : EditorWindow {
 		}
 		pathToInv = string.Join("/", splitString);
 
-		string pathToEditor = findAssetPath() + "/Editor";
+		string assetPath = findAssetPath();
+		string pathToEditor = assetPath + "/Editor";
+		string pathToAnimFolder = assetPath + "/Animations";
 		string pathToTemplate = pathToEditor + "/Templates/BehaviorKeyframeTemplate.anim";
-		string pathToGenerated = pathToEditor + "/Generated";
+		string pathToGenerated = pathToAnimFolder + "/Generated";
 
         if (!Directory.Exists(pathToGenerated)) {
             Directory.CreateDirectory(pathToGenerated);
