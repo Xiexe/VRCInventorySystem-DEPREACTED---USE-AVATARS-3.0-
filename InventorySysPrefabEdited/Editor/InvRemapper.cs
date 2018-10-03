@@ -69,7 +69,7 @@ public class InvRemapper : EditorWindow {
 		}
 	}
 
-	private void remapInv(Transform target, bool enableByDefault){
+	private void remapInv(Transform target, bool enableDefault){
 		string pathToInv = target.transform.GetHierarchyPath();
 		
 		string[] splitString = pathToInv.Split('/');
@@ -92,10 +92,10 @@ public class InvRemapper : EditorWindow {
 			AssetDatabase.Refresh();
 		}
 
-		CreateInvAndMoveObject(pathToTemplate, pathToGenerated, pathToInv, pathToEditor, target, enableByDefault);
+		CreateInvAndMoveObject(pathToTemplate, pathToGenerated, pathToInv, pathToEditor, target, enableDefault);
 	}
 
-	private void CreateInvAndMoveObject(string pathToTemplate, string pathToGenerated, string pathToInv, string pathToEditor, Transform target, bool enableByDefault){
+	private void CreateInvAndMoveObject(string pathToTemplate, string pathToGenerated, string pathToInv, string pathToEditor, Transform target, bool enableDefault){
 		Debug.Log(pathToInv);
 		Object slotPrefab = (Object)AssetDatabase.LoadAssetAtPath(pathToEditor + "/Prefab/Inv_Single_Slot.prefab", typeof(Object));
 
@@ -107,7 +107,7 @@ public class InvRemapper : EditorWindow {
 		Transform objectSlot = invSpawn.transform.GetChild(0).GetChild(0).GetChild(0);
 		target.transform.parent = objectSlot;
 		
-		if(enableByDefault){
+		if(enableDefault){
 			objectSlot.transform.gameObject.SetActive(true);
 		}
 
@@ -139,12 +139,11 @@ public class InvRemapper : EditorWindow {
 				anim.SetCurve(pathToInv + "/Inv_" + objName + "/ENABLE/DISABLE", typeof(UnityEngine.Behaviour), "m_Enabled", enableCurve());
 			}
 			
-			
-			CreateGlobalEnable(pathToTemplate, pathToGenerated, pathToInv, objName, globalDir);
+		CreateGlobalEnable(pathToTemplate, pathToGenerated, pathToInv, objName, globalDir);
 	}
 
 	private void CreateGlobalEnable(string pathToTemplate, string pathToGenerated, string pathToInv, string objName, string globalDir){
-		string globalAnimLoc = globalDir + "/DISABLE_ALL - " + avatar.name + ".anim";
+		string globalAnimLoc = globalDir + "/ENABLE_ALL - " + avatar.name + ".anim";
 
 		if(!Directory.Exists(globalDir)){
 			Directory.CreateDirectory(globalDir);
