@@ -1,1 +1,4 @@
-InventorySysPrefabEdited/Animations/Generated
+InventorySysPrefabEdited/Animations/
+InventorySysPrefabEdited/Animations/*.meta
+InventorySysPrefabEdited/Editor/XSAvatarComponentCopy.cs
+InventorySysPrefabEdited/Editor/XSAvatarComponentCopy.cs.meta
