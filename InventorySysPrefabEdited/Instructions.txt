@@ -2,31 +2,24 @@ This inventory system was originally created by Error, Nepsy, and Weong.
 
 I have edited it for ease of use. 
 
-To open the tool, find "Xiexe" at the top of the Unity Toolbar, go to "Tools" and then hit "Inventory Remapper"
+Before you start, make sure you have your items that you would like to be in your inventory on your avtar, in the correct spots.
 
-To use the tool, drop the bone for wherever you want your inventory to be in the "Inventory Location" slot.
-In the name field, type the name for what you want your animations to be.
+Now, to open the tool, find "Xiexe" at the top of the Unity Toolbar, go to "Tools" and then hit "Inventory Remapper"
+
+To use the tool, drag your avatar into the avatar slot.
+
+You will now see some options for the inventory. Adjust the slider to however many slots you want (7 is the max).
+
+Now, drop your items into the slots that are shown, and choose wether you want 
+them to be enabled by default or not using the checkbox on the right side.
 
 Then, hit generate. 
 
-The script will generate your inventory on the correct bone, and generate all the corresponding animation files. 
+The script will generate the corresponding animations in the "InventorySysPrefab" folder under "Animations/YOURAVATARNAME"
 
-You can now move objects into your slots. 
-
-To put objects in the inventory slots, position them relative to where you want, rotation, etc, in the scene, and then
-drag them into the inventory by moving it to 
-
-"Inv_(...) / Inv_X (Slot you want the item in) / Enable/ Disable / Object / YOURITEMHERE"
-
-
-You can now create an animation override controller, and throw the generated enable/disable animations into the emote slots. 
-The animations are generated under "InventorySysPrefabEdited / Editor / Generated / YOURBONENAME /"
+Take these animations, and assign them to your animation override controller, as you would any other gesture.
 
 You should now be good to go, and have a functioning inventory ready to go when you upload your avatar!
 
-PLEASE NOTE: 
-
-THIS SYSTEM IS NOT PERFECT AND MAY HAVE BUGS, IF YOURE AVATAR GETS PUT INTO THE GROUND WHEN DOING THE EMOTE, SOMETHING WENT WRONG.
-IF THIS HAPPENS, DELETE, AND REGENERATE THE ANIMATIONS. YOU WILL NOT NEED TO DELETE THE OLD INVENTORY OBJECT, YOU CAN KEEP IT AND DELETE THE NEW ONE.
-
-THERE WILL BE UPDATES TO THE SYSTEM TO IMPROVE IT SOON, I JUST WANTED TO GET SOMETHING OUT BEFORE LEGACY ANIMATIONS WERE REMOVED SO PEOPLE HAD A CHANGE TO GET THIER STUFF WORKING BEFORE THEN.
+PLEASE NOTE: There is a small bug that can happen sometimes where the animations will get generated improperly. If you avatar sinks into the ground, just regenerate the animations. I'm working on a way to fix this, however it's super inconsistent when it happens, and I haven't found the cause yet. 
+If you know the cause, please let me know. 
