@@ -31,7 +31,7 @@ public class InvRemapper : EditorWindow {
 	private void OnGUI()
     {
 		GUILayout.Space(8);
-		doLabel("Avatar");
+		doLabel("Avatar", 12, TextAnchor.MiddleCenter);
 		avatar = (Animator)EditorGUILayout.ObjectField(new GUIContent("Avatar: ", "Your avatar."), avatar, typeof(Animator), true);
 		
 		if(avatar == null){
@@ -40,17 +40,12 @@ public class InvRemapper : EditorWindow {
 
 		if(avatar != null){
 			GUILayout.Space(8);
-			doLabel("Inventory");
+			doLabel("Inventory", 12, TextAnchor.MiddleCenter);
 			itemAmount = EditorGUILayout.IntSlider("Inventory Size: ", itemAmount, 1, 7);
 
 
 			GUILayout.Space(10);
-			GUILayout.Label("Enable by Default", new GUIStyle(EditorStyles.label)
-			{
-				alignment = TextAnchor.MiddleRight,
-				wordWrap = true,
-				fontSize = 10
-			});
+			doLabel("Enable by Default", 10, TextAnchor.MiddleRight);
 			for(int i = 0; i < itemAmount; i++)
 			{
 				EditorGUILayout.BeginHorizontal();
@@ -70,14 +65,16 @@ public class InvRemapper : EditorWindow {
 	}
 
 	private void remapInv(Transform target, bool enableDefault){
+		//Bail if the target is null.
+		if(target == null){
+			return;
+		}
+
 		string pathToInv = target.transform.GetHierarchyPath();
-		
 		string[] splitString = pathToInv.Split('/');
 		
-
 			ArrayUtility.RemoveAt(ref splitString, 0);
 			ArrayUtility.RemoveAt(ref splitString, splitString.Length - 1);
-
 
 		pathToInv = string.Join("/", splitString);
 
@@ -96,33 +93,58 @@ public class InvRemapper : EditorWindow {
 	}
 
 	private void CreateInvAndMoveObject(string pathToTemplate, string pathToGenerated, string pathToInv, string pathToEditor, Transform target, bool enableDefault){
-		Debug.Log(pathToInv);
+
+		//Make sure we don't allow you to generate an inventory slot within an inventory slot.
+		if(target.transform.parent.name == "Object"){
+			
+			switch (enableDefault)
+			{
+				case true:
+					target.transform.parent.gameObject.SetActive(true);
+					break;
+
+				case false:
+					target.transform.parent.gameObject.SetActive(false);
+					break;
+			}
+			return;
+		}
+
+		//Load the prefab for the inventory slot.
 		Object slotPrefab = (Object)AssetDatabase.LoadAssetAtPath(pathToEditor + "/Prefab/Inv_Single_Slot.prefab", typeof(Object));
 
+		//Instantiate the prefab, set the parent to your items parent, set the name to match your item, and set the scale to 1.
 		GameObject invSpawn = Instantiate(slotPrefab, target.position, target.rotation) as GameObject;
 		invSpawn.transform.parent = target.transform.parent;
 		invSpawn.name = "Inv_" + target.name;
 		invSpawn.transform.localScale = new Vector3(1,1,1);
 
+		//Get the Object child of the prefab, and set the parent of your target item to the object slot.
 		Transform objectSlot = invSpawn.transform.GetChild(0).GetChild(0).GetChild(0);
 		target.transform.parent = objectSlot;
-		
+	
+		//If you want the object to be enabled by default, set the object slot to active.
 		if(enableDefault){
 			objectSlot.transform.gameObject.SetActive(true);
 		}
 
+		//Call create Globals
 		CreateGlobalDisable(pathToTemplate, pathToGenerated, pathToInv, target.name);
 	}
 
+	//Create the Global Disable animation
 	private void CreateGlobalDisable(string pathToTemplate, string pathToGenerated, string pathToInv, string objName){
+		//Out directory, and our disableAll animation path
 		string globalDir = pathToGenerated + "/Global Animations";
 		string globalAnimLoc = globalDir + "/DISABLE_ALL - " + avatar.name + ".anim";
 
+		//If the global directory doesn't exit, we need to create it.
 		if(!Directory.Exists(globalDir)){
 			Directory.CreateDirectory(globalDir);
 			AssetDatabase.Refresh();
 		}
 		
+		//Same as above but with the global animation file
 		if((AnimationClip)AssetDatabase.LoadAssetAtPath(globalAnimLoc, typeof(AnimationClip)) == null){
 			FileUtil.CopyFileOrDirectory(pathToTemplate, globalAnimLoc);
 			AssetDatabase.Refresh();
@@ -272,13 +294,13 @@ public class InvRemapper : EditorWindow {
 		}
 
 	//GuiLabel
-		public static void doLabel(string text)
+		public static void doLabel(string text, int textSize, TextAnchor anchor)
     	{
 			GUILayout.Label(text, new GUIStyle(EditorStyles.label)
 			{
-				alignment = TextAnchor.MiddleCenter,
+				alignment = anchor,
 				wordWrap = true,
-				fontSize = 12
+				fontSize = textSize
 			});
     	}
 //------------------
