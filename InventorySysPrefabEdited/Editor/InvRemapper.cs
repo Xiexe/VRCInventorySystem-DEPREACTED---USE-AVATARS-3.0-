@@ -8,85 +8,115 @@ using System.IO;
 
 public class InvRemapper : EditorWindow {
 
-	private Transform targetPath;
+	private int itemAmount = 1;
+	private Transform[] targetPath = new Transform[7];
 
 	private Animator avatar;
     private AnimationClip anim;
 	
 	private string filePath;
 	private string animName;
-	
-	private bool singleMode = true;
 
+	private bool[] enableByDefault = new bool[7];
+	
 	[MenuItem("Xiexe/Tools/Inventory Remapper")]
     static void Init()
     {
         InvRemapper window = (InvRemapper)GetWindow(typeof(InvRemapper), false, "Inv. Remapper");
-		
+		window.minSize = new Vector2(350, 299);
+        window.maxSize = new Vector2(350, 300);
         window.Show();
     }
 
 	private void OnGUI()
     {
-		avatar = (Animator)EditorGUILayout.ObjectField(new GUIContent("Avatar", "Your avatar."), avatar, typeof(Animator), true);
+		GUILayout.Space(8);
+		doLabel("Avatar");
+		avatar = (Animator)EditorGUILayout.ObjectField(new GUIContent("Avatar: ", "Your avatar."), avatar, typeof(Animator), true);
+		
+		if(avatar == null){
+			EditorGUILayout.HelpBox("You must assign an Avatar to generate the inventory on.", MessageType.Warning);
+		}
 
-		targetPath = (Transform)EditorGUILayout.ObjectField(new GUIContent("Item Location", "The Item you want to be in your inventory."), targetPath, typeof(Transform), true);
+		if(avatar != null){
+			GUILayout.Space(8);
+			doLabel("Inventory");
+			itemAmount = EditorGUILayout.IntSlider("Inventory Size: ", itemAmount, 1, 7);
 
-		if(targetPath != null && avatar != null){
+
+			GUILayout.Space(10);
+			GUILayout.Label("Enable by Default", new GUIStyle(EditorStyles.label)
+			{
+				alignment = TextAnchor.MiddleRight,
+				wordWrap = true,
+				fontSize = 10
+			});
+			for(int i = 0; i < itemAmount; i++)
+			{
+				EditorGUILayout.BeginHorizontal();
+					targetPath[i] = (Transform)EditorGUILayout.ObjectField(new GUIContent("Item " + (i+1) + ": ", "The Item you want to be in your inventory."), targetPath[i], typeof(Transform), true, GUILayout.Width(300));
+					GUILayout.FlexibleSpace();
+					enableByDefault[i] = EditorGUILayout.Toggle("", enableByDefault[i], GUILayout.Width(15));
+				EditorGUILayout.EndHorizontal();
+			}
+		
 			if (GUILayout.Button("Generate Inventory"))
         	{
-				remapInv(targetPath);
+				for(int j = 0; j < targetPath.Length; j++){
+					remapInv(targetPath[j], enableByDefault[j]);
+				}
 			}
 		}
 	}
 
-	private void remapInv(Transform target){
+	private void remapInv(Transform target, bool enableByDefault){
 		string pathToInv = target.transform.GetHierarchyPath();
 		
 		string[] splitString = pathToInv.Split('/');
 		
-		if (singleMode){
+
 			ArrayUtility.RemoveAt(ref splitString, 0);
 			ArrayUtility.RemoveAt(ref splitString, splitString.Length - 1);
-		}
-		else {
-			ArrayUtility.RemoveAt(ref splitString, 0);
-		}
+
+
 		pathToInv = string.Join("/", splitString);
 
 		string assetPath = findAssetPath();
 		string pathToEditor = assetPath + "/Editor";
 		string pathToAnimFolder = assetPath + "/Animations";
 		string pathToTemplate = pathToEditor + "/Templates/BehaviorKeyframeTemplate.anim";
-		string pathToGenerated = pathToAnimFolder + "/Generated";
+		string pathToGenerated = pathToAnimFolder + "/" + avatar.name;
 
         if (!Directory.Exists(pathToGenerated)) {
             Directory.CreateDirectory(pathToGenerated);
 			AssetDatabase.Refresh();
 		}
 
-		CreateInvAndMoveObject(pathToTemplate, pathToGenerated, pathToInv, pathToEditor);
+		CreateInvAndMoveObject(pathToTemplate, pathToGenerated, pathToInv, pathToEditor, target, enableByDefault);
 	}
 
-	private void CreateInvAndMoveObject(string pathToTemplate, string pathToGenerated, string pathToInv, string pathToEditor){
+	private void CreateInvAndMoveObject(string pathToTemplate, string pathToGenerated, string pathToInv, string pathToEditor, Transform target, bool enableByDefault){
 		Debug.Log(pathToInv);
 		Object slotPrefab = (Object)AssetDatabase.LoadAssetAtPath(pathToEditor + "/Prefab/Inv_Single_Slot.prefab", typeof(Object));
 
-		GameObject invSpawn = Instantiate(slotPrefab, targetPath.position, targetPath.rotation) as GameObject;
-		invSpawn.transform.parent = targetPath.transform.parent;
-		invSpawn.name = "Inv_" + targetPath.name;
+		GameObject invSpawn = Instantiate(slotPrefab, target.position, target.rotation) as GameObject;
+		invSpawn.transform.parent = target.transform.parent;
+		invSpawn.name = "Inv_" + target.name;
 		invSpawn.transform.localScale = new Vector3(1,1,1);
 
 		Transform objectSlot = invSpawn.transform.GetChild(0).GetChild(0).GetChild(0);
-		targetPath.transform.parent = objectSlot;
+		target.transform.parent = objectSlot;
+		
+		if(enableByDefault){
+			objectSlot.transform.gameObject.SetActive(true);
+		}
 
-
-		CreateGlobalDisable(pathToTemplate, pathToGenerated, pathToInv, targetPath.name);
+		CreateGlobalDisable(pathToTemplate, pathToGenerated, pathToInv, target.name);
 	}
 
 	private void CreateGlobalDisable(string pathToTemplate, string pathToGenerated, string pathToInv, string objName){
 		string globalDir = pathToGenerated + "/Global Animations";
-		string globalAnimLoc = globalDir + "/" + avatar.name + "_DISABLE_GLOBAL.anim";
+		string globalAnimLoc = globalDir + "/DISABLE_ALL - " + avatar.name + ".anim";
 
 		if(!Directory.Exists(globalDir)){
 			Directory.CreateDirectory(globalDir);
@@ -114,7 +144,7 @@ public class InvRemapper : EditorWindow {
 	}
 
 	private void CreateGlobalEnable(string pathToTemplate, string pathToGenerated, string pathToInv, string objName, string globalDir){
-		string globalAnimLoc = globalDir + "/" + avatar.name + "_ENABLE_GLOBAL.anim";
+		string globalAnimLoc = globalDir + "/DISABLE_ALL - " + avatar.name + ".anim";
 
 		if(!Directory.Exists(globalDir)){
 			Directory.CreateDirectory(globalDir);
@@ -241,5 +271,16 @@ public class InvRemapper : EditorWindow {
 
 			return enableCurve;
 		}
+
+	//GuiLabel
+		public static void doLabel(string text)
+    	{
+			GUILayout.Label(text, new GUIStyle(EditorStyles.label)
+			{
+				alignment = TextAnchor.MiddleCenter,
+				wordWrap = true,
+				fontSize = 12
+			});
+    	}
 //------------------
 }
