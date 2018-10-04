@@ -302,40 +302,30 @@ public class InvRemapper : EditorWindow
         return filePath;
     }
 
+    private AnimationCurve CreateConstantCurve(float value)
+    {
+        Keyframe[] keys = new Keyframe[2];
+        Keyframe begin = new Keyframe(0, value);
+        Keyframe end = new Keyframe(0.5f, value);
+        begin.outTangent = float.PositiveInfinity;
+        begin.inTangent = float.NegativeInfinity;
+        end.inTangent = float.NegativeInfinity;
+        end.outTangent = float.PositiveInfinity;
+        keys[0] = begin;
+        keys[1] = end;
+        AnimationCurve curve = new AnimationCurve(keys);
+        return curve;
+    }
 
     // Create Disable Curves
     private AnimationCurve disableCurve()
     {
-
-        Keyframe[] disableKeys = new Keyframe[2];
-        Keyframe disableBegin = new Keyframe(0, 0);
-        Keyframe disableEnd = new Keyframe(0.5f, 0);
-        disableBegin.outTangent = float.PositiveInfinity;
-        disableBegin.inTangent = float.NegativeInfinity;
-        disableEnd.inTangent = float.NegativeInfinity;
-        disableEnd.outTangent = float.PositiveInfinity;
-        disableKeys[0] = disableBegin;
-        disableKeys[1] = disableEnd;
-        AnimationCurve disableCurve = new AnimationCurve(disableKeys);
-
-        return disableCurve;
+        return CreateConstantCurve(0f);
     }
     // Create Enable Curves
     private AnimationCurve enableCurve()
     {
-
-        Keyframe[] enableKeys = new Keyframe[2];
-        Keyframe enableBegin = new Keyframe(0, 1);
-        Keyframe enableEnd = new Keyframe(0.5f, 1);
-        enableBegin.outTangent = float.PositiveInfinity;
-        enableBegin.inTangent = float.NegativeInfinity;
-        enableEnd.inTangent = float.NegativeInfinity;
-        enableEnd.outTangent = float.PositiveInfinity;
-        enableKeys[0] = enableBegin;
-        enableKeys[1] = enableEnd;
-        AnimationCurve enableCurve = new AnimationCurve(enableKeys);
-
-        return enableCurve;
+        return CreateConstantCurve(1f);
     }
 
     //GuiLabel
