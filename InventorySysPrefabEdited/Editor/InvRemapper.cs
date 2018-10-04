@@ -117,30 +117,28 @@ public class InvRemapper : EditorWindow
         string pathToTemplate = pathToEditor + "/Templates/BehaviorKeyframeTemplate.anim";
         string pathToGenerated = pathToAnimFolder + "/" + avatar.name;
 
+        //Make sure we have all the directories we need
         if (!Directory.Exists(pathToGenerated))
         {
             Directory.CreateDirectory(pathToGenerated);
-            AssetDatabase.Refresh();
         }
-        //If the global directory doesn't exit, we need to create it.
+
         string globalDir = pathToGenerated + "/Global Animations";
         if (!Directory.Exists(globalDir))
         {
             Directory.CreateDirectory(globalDir);
-            AssetDatabase.Refresh();
         }
+
         string enableDir = pathToGenerated + "/Enable Animations";
         if (!Directory.Exists(enableDir))
         {
             Directory.CreateDirectory(enableDir);
-            AssetDatabase.Refresh();
         }
-        string disableDir = pathToGenerated + "/Disable Animations";
 
+        string disableDir = pathToGenerated + "/Disable Animations";
         if (!Directory.Exists(disableDir))
         {
             Directory.CreateDirectory(disableDir);
-            AssetDatabase.Refresh();
         }
 
         InventoryDirectories inventoryDirectories = new InventoryDirectories(pathToTemplate, pathToGenerated, pathToInv, pathToEditor, disableDir, enableDir, globalDir);
@@ -198,12 +196,7 @@ public class InvRemapper : EditorWindow
         string globalDir = inventoryDirectories.pathToGenerated + "/Global Animations";
         string globalAnimLoc = globalDir + "/DISABLE_ALL - " + avatar.name + ".anim";
 
-        //Same as above but with the global animation file
-        if ((AnimationClip)AssetDatabase.LoadAssetAtPath(globalAnimLoc, typeof(AnimationClip)) == null)
-        {
-            FileUtil.CopyFileOrDirectory(inventoryDirectories.pathToTemplate, globalAnimLoc);
-            AssetDatabase.Refresh();
-        }
+        CreateAnimIfNotExists(inventoryDirectories, globalAnimLoc);
 
         AnimationClip anim = (AnimationClip)AssetDatabase.LoadAssetAtPath(globalAnimLoc, typeof(AnimationClip));
 
@@ -225,11 +218,7 @@ public class InvRemapper : EditorWindow
     {
         string globalAnimLoc = globalDir + "/ENABLE_ALL - " + avatar.name + ".anim";
 
-        if ((AnimationClip)AssetDatabase.LoadAssetAtPath(globalAnimLoc, typeof(AnimationClip)) == null)
-        {
-            FileUtil.CopyFileOrDirectory(inventoryDirectories.pathToTemplate, globalAnimLoc);
-            AssetDatabase.Refresh();
-        }
+        CreateAnimIfNotExists(inventoryDirectories, globalAnimLoc);
 
         AnimationClip anim = (AnimationClip)AssetDatabase.LoadAssetAtPath(globalAnimLoc, typeof(AnimationClip));
 
@@ -251,10 +240,10 @@ public class InvRemapper : EditorWindow
     {
         string enableAnimLoc = inventoryDirectories.enableDir + "/" + objName + "_ENABLE.anim";
 
-        if ((AnimationClip)AssetDatabase.LoadAssetAtPath(enableAnimLoc, typeof(AnimationClip)) == null)
+        if (!File.Exists(enableAnimLoc))
         {
             FileUtil.CopyFileOrDirectory(inventoryDirectories.pathToTemplate, enableAnimLoc);
-            AssetDatabase.Refresh();
+            AssetDatabase.ImportAsset(enableAnimLoc, ImportAssetOptions.ForceSynchronousImport);
         }
 
         AnimationClip anim = (AnimationClip)AssetDatabase.LoadAssetAtPath(enableAnimLoc, typeof(AnimationClip));
@@ -277,12 +266,7 @@ public class InvRemapper : EditorWindow
     private void CreateDisable(InventoryDirectories inventoryDirectories, string objName)
     {
         string disableAnimLoc = inventoryDirectories.disableDir + "/" + objName + "_DISABLE.anim";
-
-        if ((AnimationClip)AssetDatabase.LoadAssetAtPath(disableAnimLoc, typeof(AnimationClip)) == null)
-        {
-            FileUtil.CopyFileOrDirectory(inventoryDirectories.pathToTemplate, disableAnimLoc);
-            AssetDatabase.Refresh();
-        }
+        CreateAnimIfNotExists(inventoryDirectories, disableAnimLoc);
 
         AnimationClip anim = (AnimationClip)AssetDatabase.LoadAssetAtPath(disableAnimLoc, typeof(AnimationClip));
 
@@ -295,6 +279,15 @@ public class InvRemapper : EditorWindow
         {
             anim.SetCurve(inventoryDirectories.pathToInv + "/Inv_" + objName + "/ENABLE", typeof(UnityEngine.Behaviour), "m_Enabled", disableCurve());
             anim.SetCurve(inventoryDirectories.pathToInv + "/Inv_" + objName + "/ENABLE/DISABLE", typeof(UnityEngine.Behaviour), "m_Enabled", enableCurve());
+        }
+    }
+
+    private static void CreateAnimIfNotExists(InventoryDirectories inventoryDirectories, string anim)
+    {
+        if (!File.Exists(anim))
+        {
+            FileUtil.CopyFileOrDirectory(inventoryDirectories.pathToTemplate, anim);
+            AssetDatabase.ImportAsset(anim, ImportAssetOptions.ForceSynchronousImport);
         }
     }
 
