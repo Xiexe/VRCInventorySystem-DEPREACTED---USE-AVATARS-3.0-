@@ -152,7 +152,6 @@ public class InvRemapper : EditorWindow
         //Make sure we don't allow you to generate an inventory slot within an inventory slot.
         if (target.transform.parent.name == "Object")
         {
-
             switch (enableDefault)
             {
                 case true:
