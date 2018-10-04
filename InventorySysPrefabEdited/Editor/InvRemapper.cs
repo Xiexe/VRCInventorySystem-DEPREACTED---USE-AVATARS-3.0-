@@ -73,6 +73,28 @@ public class InvRemapper : EditorWindow
         return path;
     }
 
+    struct InventoryDirectories
+    {
+        public string pathToTemplate;
+        public string pathToGenerated;
+        public string pathToInv;
+        public string pathToEditor;
+        public string disableDir;
+        public string enableDir;
+        public string globalDir;
+
+        public InventoryDirectories(string pathToTemplate, string pathToGenerated, string pathToInv, string pathToEditor, string disableDir, string enableDir, string globalDir)
+        {
+            this.pathToTemplate = pathToTemplate;
+            this.pathToGenerated = pathToGenerated;
+            this.pathToInv = pathToInv;
+            this.pathToEditor = pathToEditor;
+            this.disableDir = disableDir;
+            this.enableDir = enableDir;
+            this.globalDir = globalDir;
+        }
+    }
+
     private void remapInv(Transform target, bool enableDefault)
     {
         //Bail if the target is null.
@@ -100,11 +122,33 @@ public class InvRemapper : EditorWindow
             Directory.CreateDirectory(pathToGenerated);
             AssetDatabase.Refresh();
         }
+        //If the global directory doesn't exit, we need to create it.
+        string globalDir = pathToGenerated + "/Global Animations";
+        if (!Directory.Exists(globalDir))
+        {
+            Directory.CreateDirectory(globalDir);
+            AssetDatabase.Refresh();
+        }
+        string enableDir = pathToGenerated + "/Enable Animations";
+        if (!Directory.Exists(enableDir))
+        {
+            Directory.CreateDirectory(enableDir);
+            AssetDatabase.Refresh();
+        }
+        string disableDir = pathToGenerated + "/Disable Animations";
 
-        CreateInvAndMoveObject(pathToTemplate, pathToGenerated, pathToInv, pathToEditor, target, enableDefault);
+        if (!Directory.Exists(disableDir))
+        {
+            Directory.CreateDirectory(disableDir);
+            AssetDatabase.Refresh();
+        }
+
+        InventoryDirectories inventoryDirectories = new InventoryDirectories(pathToTemplate, pathToGenerated, pathToInv, pathToEditor, disableDir, enableDir, globalDir);
+
+        CreateInvAndMoveObject(inventoryDirectories, target, enableDefault);
     }
 
-    private void CreateInvAndMoveObject(string pathToTemplate, string pathToGenerated, string pathToInv, string pathToEditor, Transform target, bool enableDefault)
+    private void CreateInvAndMoveObject(InventoryDirectories inventoryDirectories, Transform target, bool enableDefault)
     {
 
         //Make sure we don't allow you to generate an inventory slot within an inventory slot.
@@ -125,7 +169,7 @@ public class InvRemapper : EditorWindow
         }
 
         //Load the prefab for the inventory slot.
-        Object slotPrefab = (Object)AssetDatabase.LoadAssetAtPath(pathToEditor + "/Prefab/Inv_Single_Slot.prefab", typeof(Object));
+        Object slotPrefab = (Object)AssetDatabase.LoadAssetAtPath(inventoryDirectories.pathToEditor + "/Prefab/Inv_Single_Slot.prefab", typeof(Object));
 
         //Instantiate the prefab, set the parent to your items parent, set the name to match your item, and set the scale to 1.
         GameObject invSpawn = Instantiate(slotPrefab, target.position, target.rotation) as GameObject;
@@ -144,140 +188,113 @@ public class InvRemapper : EditorWindow
         }
 
         //Call create Globals
-        CreateGlobalDisable(pathToTemplate, pathToGenerated, pathToInv, target.name);
+        CreateGlobalDisable(inventoryDirectories, target.name);
     }
 
     //Create the Global Disable animation
-    private void CreateGlobalDisable(string pathToTemplate, string pathToGenerated, string pathToInv, string objName)
+    private void CreateGlobalDisable(InventoryDirectories inventoryDirectories, string objName)
     {
         //Out directory, and our disableAll animation path
-        string globalDir = pathToGenerated + "/Global Animations";
+        string globalDir = inventoryDirectories.pathToGenerated + "/Global Animations";
         string globalAnimLoc = globalDir + "/DISABLE_ALL - " + avatar.name + ".anim";
-
-        //If the global directory doesn't exit, we need to create it.
-        if (!Directory.Exists(globalDir))
-        {
-            Directory.CreateDirectory(globalDir);
-            AssetDatabase.Refresh();
-        }
 
         //Same as above but with the global animation file
         if ((AnimationClip)AssetDatabase.LoadAssetAtPath(globalAnimLoc, typeof(AnimationClip)) == null)
         {
-            FileUtil.CopyFileOrDirectory(pathToTemplate, globalAnimLoc);
+            FileUtil.CopyFileOrDirectory(inventoryDirectories.pathToTemplate, globalAnimLoc);
             AssetDatabase.Refresh();
         }
 
         AnimationClip anim = (AnimationClip)AssetDatabase.LoadAssetAtPath(globalAnimLoc, typeof(AnimationClip));
 
-        if (pathToInv == "")
+        if (inventoryDirectories.pathToInv == "")
         {
             anim.SetCurve("Inv_" + objName + "/ENABLE", typeof(UnityEngine.Behaviour), "m_Enabled", disableCurve());
             anim.SetCurve("Inv_" + objName + "/ENABLE/DISABLE", typeof(UnityEngine.Behaviour), "m_Enabled", enableCurve());
         }
         else
         {
-            anim.SetCurve(pathToInv + "/Inv_" + objName + "/ENABLE", typeof(UnityEngine.Behaviour), "m_Enabled", disableCurve());
-            anim.SetCurve(pathToInv + "/Inv_" + objName + "/ENABLE/DISABLE", typeof(UnityEngine.Behaviour), "m_Enabled", enableCurve());
+            anim.SetCurve(inventoryDirectories.pathToInv + "/Inv_" + objName + "/ENABLE", typeof(UnityEngine.Behaviour), "m_Enabled", disableCurve());
+            anim.SetCurve(inventoryDirectories.pathToInv + "/Inv_" + objName + "/ENABLE/DISABLE", typeof(UnityEngine.Behaviour), "m_Enabled", enableCurve());
         }
 
-        CreateGlobalEnable(pathToTemplate, pathToGenerated, pathToInv, objName, globalDir);
+        CreateGlobalEnable(inventoryDirectories, objName, globalDir);
     }
 
-    private void CreateGlobalEnable(string pathToTemplate, string pathToGenerated, string pathToInv, string objName, string globalDir)
+    private void CreateGlobalEnable(InventoryDirectories inventoryDirectories, string objName, string globalDir)
     {
         string globalAnimLoc = globalDir + "/ENABLE_ALL - " + avatar.name + ".anim";
 
-        if (!Directory.Exists(globalDir))
-        {
-            Directory.CreateDirectory(globalDir);
-            AssetDatabase.Refresh();
-        }
-
         if ((AnimationClip)AssetDatabase.LoadAssetAtPath(globalAnimLoc, typeof(AnimationClip)) == null)
         {
-            FileUtil.CopyFileOrDirectory(pathToTemplate, globalAnimLoc);
+            FileUtil.CopyFileOrDirectory(inventoryDirectories.pathToTemplate, globalAnimLoc);
             AssetDatabase.Refresh();
         }
 
         AnimationClip anim = (AnimationClip)AssetDatabase.LoadAssetAtPath(globalAnimLoc, typeof(AnimationClip));
 
-        if (pathToInv == "")
+        if (inventoryDirectories.pathToInv == "")
         {
             anim.SetCurve("Inv_" + objName + "/ENABLE", typeof(UnityEngine.Behaviour), "m_Enabled", enableCurve());
             anim.SetCurve("Inv_" + objName + "/ENABLE/DISABLE", typeof(UnityEngine.Behaviour), "m_Enabled", disableCurve());
         }
         else
         {
-            anim.SetCurve(pathToInv + "/Inv_" + objName + "/ENABLE", typeof(UnityEngine.Behaviour), "m_Enabled", enableCurve());
-            anim.SetCurve(pathToInv + "/Inv_" + objName + "/ENABLE/DISABLE", typeof(UnityEngine.Behaviour), "m_Enabled", disableCurve());
+            anim.SetCurve(inventoryDirectories.pathToInv + "/Inv_" + objName + "/ENABLE", typeof(UnityEngine.Behaviour), "m_Enabled", enableCurve());
+            anim.SetCurve(inventoryDirectories.pathToInv + "/Inv_" + objName + "/ENABLE/DISABLE", typeof(UnityEngine.Behaviour), "m_Enabled", disableCurve());
         }
 
-        CreateEnable(pathToTemplate, pathToGenerated, pathToInv, objName);
+        CreateEnable(inventoryDirectories, objName);
     }
 
-    private void CreateEnable(string pathToTemplate, string pathToGenerated, string pathToInv, string objName)
+    private void CreateEnable(InventoryDirectories inventoryDirectories, string objName)
     {
-        string enableDir = pathToGenerated + "/Enable Animations";
-        string enableAnimLoc = enableDir + "/" + objName + "_ENABLE.anim";
-
-        if (!Directory.Exists(enableDir))
-        {
-            Directory.CreateDirectory(enableDir);
-            AssetDatabase.Refresh();
-        }
+        string enableAnimLoc = inventoryDirectories.enableDir + "/" + objName + "_ENABLE.anim";
 
         if ((AnimationClip)AssetDatabase.LoadAssetAtPath(enableAnimLoc, typeof(AnimationClip)) == null)
         {
-            FileUtil.CopyFileOrDirectory(pathToTemplate, enableAnimLoc);
+            FileUtil.CopyFileOrDirectory(inventoryDirectories.pathToTemplate, enableAnimLoc);
             AssetDatabase.Refresh();
         }
 
         AnimationClip anim = (AnimationClip)AssetDatabase.LoadAssetAtPath(enableAnimLoc, typeof(AnimationClip));
 
-        if (pathToInv == "")
+        if (inventoryDirectories.pathToInv == "")
         {
             anim.SetCurve("Inv_" + objName + "/ENABLE", typeof(UnityEngine.Behaviour), "m_Enabled", enableCurve());
             anim.SetCurve("Inv_" + objName + "/ENABLE/DISABLE", typeof(UnityEngine.Behaviour), "m_Enabled", disableCurve());
         }
         else
         {
-            anim.SetCurve(pathToInv + "/Inv_" + objName + "/ENABLE", typeof(UnityEngine.Behaviour), "m_Enabled", enableCurve());
-            anim.SetCurve(pathToInv + "/Inv_" + objName + "/ENABLE/DISABLE", typeof(UnityEngine.Behaviour), "m_Enabled", disableCurve());
+            anim.SetCurve(inventoryDirectories.pathToInv + "/Inv_" + objName + "/ENABLE", typeof(UnityEngine.Behaviour), "m_Enabled", enableCurve());
+            anim.SetCurve(inventoryDirectories.pathToInv + "/Inv_" + objName + "/ENABLE/DISABLE", typeof(UnityEngine.Behaviour), "m_Enabled", disableCurve());
         }
 
-        CreateDisable(pathToTemplate, pathToGenerated, pathToInv, objName);
+        CreateDisable(inventoryDirectories, objName);
     }
 
 
-    private void CreateDisable(string pathToTemplate, string pathToGenerated, string pathToInv, string objName)
+    private void CreateDisable(InventoryDirectories inventoryDirectories, string objName)
     {
-        string disableDir = pathToGenerated + "/Disable Animations";
-        string disableAnimLoc = disableDir + "/" + objName + "_DISABLE.anim";
-
-        if (!Directory.Exists(disableDir))
-        {
-            Directory.CreateDirectory(disableDir);
-            AssetDatabase.Refresh();
-        }
+        string disableAnimLoc = inventoryDirectories.disableDir + "/" + objName + "_DISABLE.anim";
 
         if ((AnimationClip)AssetDatabase.LoadAssetAtPath(disableAnimLoc, typeof(AnimationClip)) == null)
         {
-            FileUtil.CopyFileOrDirectory(pathToTemplate, disableAnimLoc);
+            FileUtil.CopyFileOrDirectory(inventoryDirectories.pathToTemplate, disableAnimLoc);
             AssetDatabase.Refresh();
         }
 
         AnimationClip anim = (AnimationClip)AssetDatabase.LoadAssetAtPath(disableAnimLoc, typeof(AnimationClip));
 
-        if (pathToInv == "")
+        if (inventoryDirectories.pathToInv == "")
         {
             anim.SetCurve("Inv_" + objName + "/ENABLE", typeof(UnityEngine.Behaviour), "m_Enabled", disableCurve());
             anim.SetCurve("Inv_" + objName + "/ENABLE/DISABLE", typeof(UnityEngine.Behaviour), "m_Enabled", enableCurve());
         }
         else
         {
-            anim.SetCurve(pathToInv + "/Inv_" + objName + "/ENABLE", typeof(UnityEngine.Behaviour), "m_Enabled", disableCurve());
-            anim.SetCurve(pathToInv + "/Inv_" + objName + "/ENABLE/DISABLE", typeof(UnityEngine.Behaviour), "m_Enabled", enableCurve());
+            anim.SetCurve(inventoryDirectories.pathToInv + "/Inv_" + objName + "/ENABLE", typeof(UnityEngine.Behaviour), "m_Enabled", disableCurve());
+            anim.SetCurve(inventoryDirectories.pathToInv + "/Inv_" + objName + "/ENABLE/DISABLE", typeof(UnityEngine.Behaviour), "m_Enabled", enableCurve());
         }
     }
 
