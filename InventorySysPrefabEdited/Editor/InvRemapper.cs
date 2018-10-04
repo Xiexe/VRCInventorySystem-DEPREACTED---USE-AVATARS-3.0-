@@ -194,7 +194,7 @@ public class InvRemapper : EditorWindow
     {
         //Out directory, and our disableAll animation path
         string globalDir = inventoryDirectories.pathToGenerated + "/Global Animations";
-        string globalAnimLoc = globalDir + "/DISABLE_ALL - " + avatar.name + ".anim";
+        string globalAnimLoc = globalDir + "/DISABLE_ALL - " + avatar.name + "_TEMPANIMXD.anim";
 
         CreateAnimIfNotExists(inventoryDirectories, globalAnimLoc);
 
@@ -202,10 +202,50 @@ public class InvRemapper : EditorWindow
         SetCurveOrCreatePathToInv(inventoryDirectories, objName, anim, disableCurve(), enableCurve());
 
         CreateGlobalEnable(inventoryDirectories, objName, globalDir);
+        CopyAssetReqMemeXD(globalAnimLoc);
     }
 
-    private void SetCurveOrCreatePathToInv(InventoryDirectories inventoryDirectories, string objName, AnimationClip anim,
-        AnimationCurve firstCurve, AnimationCurve secondCurve)
+
+
+    private void CreateGlobalEnable(InventoryDirectories inventoryDirectories, string objName, string globalDir)
+    {
+        string globalAnimLoc = globalDir + "/ENABLE_ALL - " + avatar.name + "_TEMPANIMXD.anim";
+
+        CreateAnimIfNotExists(inventoryDirectories, globalAnimLoc);
+
+        AnimationClip anim = (AnimationClip)AssetDatabase.LoadAssetAtPath(globalAnimLoc, typeof(AnimationClip));
+        SetCurveOrCreatePathToInv(inventoryDirectories, objName, anim, enableCurve(), disableCurve());
+
+        CreateEnable(inventoryDirectories, objName);
+        CopyAssetReqMemeXD(globalAnimLoc);
+    }
+
+    private void CreateEnable(InventoryDirectories inventoryDirectories, string objName)
+    {
+        string enableAnimLoc = inventoryDirectories.enableDir + "/" + objName + "_ENABLE_TEMPANIMXD.anim";
+
+        CreateAnimIfNotExists(inventoryDirectories, enableAnimLoc);
+
+        AnimationClip anim = (AnimationClip)AssetDatabase.LoadAssetAtPath(enableAnimLoc, typeof(AnimationClip));
+
+        SetCurveOrCreatePathToInv(inventoryDirectories, objName, anim, enableCurve(), disableCurve());
+
+        CreateDisable(inventoryDirectories, objName);
+        CopyAssetReqMemeXD(enableAnimLoc);
+    }
+
+
+    private void CreateDisable(InventoryDirectories inventoryDirectories, string objName)
+    {
+        string disableAnimLoc = inventoryDirectories.disableDir + "/" + objName + "_DISABLE_TEMPANIMXD.anim";
+        CreateAnimIfNotExists(inventoryDirectories, disableAnimLoc);
+
+        AnimationClip anim = (AnimationClip)AssetDatabase.LoadAssetAtPath(disableAnimLoc, typeof(AnimationClip));
+        SetCurveOrCreatePathToInv(inventoryDirectories, objName, anim, disableCurve(), enableCurve());
+        CopyAssetReqMemeXD(disableAnimLoc);
+    }
+
+    private void SetCurveOrCreatePathToInv(InventoryDirectories inventoryDirectories, string objName, AnimationClip anim, AnimationCurve firstCurve, AnimationCurve secondCurve)
     {
         Debug.Assert(anim != null, "Anim was null");
         if (inventoryDirectories.pathToInv == "")
@@ -218,41 +258,6 @@ public class InvRemapper : EditorWindow
             anim.SetCurve(inventoryDirectories.pathToInv + "/Inv_" + objName + "/ENABLE", typeof(UnityEngine.Behaviour), "m_Enabled", firstCurve);
             anim.SetCurve(inventoryDirectories.pathToInv + "/Inv_" + objName + "/ENABLE/DISABLE", typeof(UnityEngine.Behaviour), "m_Enabled", secondCurve);
         }
-    }
-
-    private void CreateGlobalEnable(InventoryDirectories inventoryDirectories, string objName, string globalDir)
-    {
-        string globalAnimLoc = globalDir + "/ENABLE_ALL - " + avatar.name + ".anim";
-
-        CreateAnimIfNotExists(inventoryDirectories, globalAnimLoc);
-
-        AnimationClip anim = (AnimationClip)AssetDatabase.LoadAssetAtPath(globalAnimLoc, typeof(AnimationClip));
-        SetCurveOrCreatePathToInv(inventoryDirectories, objName, anim, enableCurve(), disableCurve());
-
-        CreateEnable(inventoryDirectories, objName);
-    }
-
-    private void CreateEnable(InventoryDirectories inventoryDirectories, string objName)
-    {
-        string enableAnimLoc = inventoryDirectories.enableDir + "/" + objName + "_ENABLE.anim";
-
-        CreateAnimIfNotExists(inventoryDirectories, enableAnimLoc);
-
-        AnimationClip anim = (AnimationClip)AssetDatabase.LoadAssetAtPath(enableAnimLoc, typeof(AnimationClip));
-
-        SetCurveOrCreatePathToInv(inventoryDirectories, objName, anim, enableCurve(), disableCurve());
-
-        CreateDisable(inventoryDirectories, objName);
-    }
-
-
-    private void CreateDisable(InventoryDirectories inventoryDirectories, string objName)
-    {
-        string disableAnimLoc = inventoryDirectories.disableDir + "/" + objName + "_DISABLE.anim";
-        CreateAnimIfNotExists(inventoryDirectories, disableAnimLoc);
-
-        AnimationClip anim = (AnimationClip)AssetDatabase.LoadAssetAtPath(disableAnimLoc, typeof(AnimationClip));
-        SetCurveOrCreatePathToInv(inventoryDirectories, objName, anim, disableCurve(), enableCurve());
     }
 
     private static void CreateAnimIfNotExists(InventoryDirectories inventoryDirectories, string animPath)
@@ -268,6 +273,7 @@ public class InvRemapper : EditorWindow
             AnimationClip newClip = new AnimationClip();
             //Get all bindings and set every curve from the template to the new clip
             EditorCurveBinding[] templateBindings = AnimationUtility.GetCurveBindings(templateAnim);
+
             foreach(EditorCurveBinding binding in templateBindings)
             {
                 newClip.SetCurve(binding.path, binding.type, binding.propertyName,
@@ -278,6 +284,13 @@ public class InvRemapper : EditorWindow
             AssetDatabase.CreateAsset(newClip, animPath);
             AssetDatabase.SaveAssets();
         }
+    }
+
+    private void CopyAssetReqMemeXD(string oldLocation)
+    {
+        AssetDatabase.CopyAsset(oldLocation, oldLocation.Replace("_TEMPANIMXD", ""));
+        AssetDatabase.DeleteAsset(oldLocation);
+        AssetDatabase.Refresh();
     }
 
     //Helper functions
