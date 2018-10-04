@@ -152,6 +152,7 @@ public class InvRemapper : EditorWindow
         //Make sure we don't allow you to generate an inventory slot within an inventory slot.
         if (target.transform.parent.name == "Object")
         {
+            //If the slot already exists, but you want to change wether the item starts as active or not, we can allow that.
             switch (enableDefault)
             {
                 case true:
