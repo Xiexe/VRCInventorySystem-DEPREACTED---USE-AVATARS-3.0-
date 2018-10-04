@@ -8,16 +8,10 @@ using System.IO;
 
 public class InvRemapper : EditorWindow
 {
-
     private int itemAmount = 1;
     private Transform[] targetPath = new Transform[7];
 
     private Animator avatar;
-    private AnimationClip anim;
-
-    private string filePath;
-    private string animName;
-
     private bool[] enableByDefault = new bool[7];
 
     [MenuItem("Xiexe/Tools/Inventory Remapper")]
@@ -174,7 +168,7 @@ public class InvRemapper : EditorWindow
             AssetDatabase.Refresh();
         }
 
-        anim = (AnimationClip)AssetDatabase.LoadAssetAtPath(globalAnimLoc, typeof(AnimationClip));
+        AnimationClip anim = (AnimationClip)AssetDatabase.LoadAssetAtPath(globalAnimLoc, typeof(AnimationClip));
 
         if (pathToInv == "")
         {
@@ -206,7 +200,7 @@ public class InvRemapper : EditorWindow
             AssetDatabase.Refresh();
         }
 
-        anim = (AnimationClip)AssetDatabase.LoadAssetAtPath(globalAnimLoc, typeof(AnimationClip));
+        AnimationClip anim = (AnimationClip)AssetDatabase.LoadAssetAtPath(globalAnimLoc, typeof(AnimationClip));
 
         if (pathToInv == "")
         {
@@ -239,7 +233,7 @@ public class InvRemapper : EditorWindow
             AssetDatabase.Refresh();
         }
 
-        anim = (AnimationClip)AssetDatabase.LoadAssetAtPath(enableAnimLoc, typeof(AnimationClip));
+        AnimationClip anim = (AnimationClip)AssetDatabase.LoadAssetAtPath(enableAnimLoc, typeof(AnimationClip));
 
         if (pathToInv == "")
         {
@@ -273,7 +267,7 @@ public class InvRemapper : EditorWindow
             AssetDatabase.Refresh();
         }
 
-        anim = (AnimationClip)AssetDatabase.LoadAssetAtPath(disableAnimLoc, typeof(AnimationClip));
+        AnimationClip anim = (AnimationClip)AssetDatabase.LoadAssetAtPath(disableAnimLoc, typeof(AnimationClip));
 
         if (pathToInv == "")
         {
@@ -298,7 +292,7 @@ public class InvRemapper : EditorWindow
         ArrayUtility.RemoveAt(ref splitString, splitString.Length - 1);
         ArrayUtility.RemoveAt(ref splitString, splitString.Length - 1);
 
-        filePath = string.Join("/", splitString);
+        string filePath = string.Join("/", splitString);
         return filePath;
     }
 
