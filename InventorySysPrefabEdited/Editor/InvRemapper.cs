@@ -194,7 +194,12 @@ public class InvRemapper : EditorWindow
     {
         //Out directory, and our disableAll animation path
         string globalDir = inventoryDirectories.pathToGenerated + "/Global Animations";
-        string globalAnimLoc = globalDir + "/DISABLE_ALL - " + avatar.name + "_TEMPANIMXD.anim";
+        string globalAnimLoc = globalDir + "/DISABLE_ALL - " + avatar.name + "_TEMPANIMXD.anim";;
+        bool exists = CheckIfReplaced(globalAnimLoc);
+        if(exists)
+        {
+            globalAnimLoc = globalDir + "/DISABLE_ALL - " + avatar.name + ".anim";
+        }
 
         CreateAnimIfNotExists(inventoryDirectories, globalAnimLoc);
 
@@ -202,7 +207,11 @@ public class InvRemapper : EditorWindow
         SetCurveOrCreatePathToInv(inventoryDirectories, objName, anim, disableCurve(), enableCurve());
 
         CreateGlobalEnable(inventoryDirectories, objName, globalDir);
-        CopyAssetReqMemeXD(globalAnimLoc);
+        if(!exists)
+        {
+            CopyAssetReqMemeXD(globalAnimLoc);
+        }
+        
     }
 
 
@@ -210,6 +219,11 @@ public class InvRemapper : EditorWindow
     private void CreateGlobalEnable(InventoryDirectories inventoryDirectories, string objName, string globalDir)
     {
         string globalAnimLoc = globalDir + "/ENABLE_ALL - " + avatar.name + "_TEMPANIMXD.anim";
+        bool exists = CheckIfReplaced(globalAnimLoc);
+        if(exists)
+        {
+            globalAnimLoc = globalDir + "/ENABLE_ALL - " + avatar.name + ".anim";
+        }
 
         CreateAnimIfNotExists(inventoryDirectories, globalAnimLoc);
 
@@ -217,7 +231,10 @@ public class InvRemapper : EditorWindow
         SetCurveOrCreatePathToInv(inventoryDirectories, objName, anim, enableCurve(), disableCurve());
 
         CreateEnable(inventoryDirectories, objName);
-        CopyAssetReqMemeXD(globalAnimLoc);
+        if(!exists)
+        {
+            CopyAssetReqMemeXD(globalAnimLoc);
+        }
     }
 
     private void CreateEnable(InventoryDirectories inventoryDirectories, string objName)
@@ -285,6 +302,17 @@ public class InvRemapper : EditorWindow
             AssetDatabase.SaveAssets();
         }
     }
+
+    private bool CheckIfReplaced(string oldLocation)
+    {
+        bool hasBeenDuplicated = false;
+
+        if(File.Exists(oldLocation.Replace("_TEMPANIMXD", "")))
+        {
+            hasBeenDuplicated = true;        
+        }
+        return hasBeenDuplicated;
+    }   
 
     private void CopyAssetReqMemeXD(string oldLocation)
     {
