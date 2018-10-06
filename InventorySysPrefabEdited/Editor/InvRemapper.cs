@@ -36,6 +36,17 @@ public class InvRemapper : EditorWindow
 
         if (avatar != null)
         {
+            // string[] saveFileLocation = AssetDatabase.FindAssets(avatar.name + " - Inventory");
+            // Object saveFile = AssetDatabase.LoadAssetAtPath(saveFileLocation[0], typeof(Object));
+
+            // if (saveFile != null)
+            // {
+            //     savedInventory loadedFile = JsonUtility.FromJson<savedInventory>(saveFile.ToString());
+            //     itemAmount = loadedFile.slotAmount;
+                
+
+            // }
+
             GUILayout.Space(8);
             doLabel("Inventory", 12, TextAnchor.MiddleCenter);
             itemAmount = EditorGUILayout.IntSlider("Inventory Size: ", itemAmount, 1, 7);
@@ -73,6 +84,16 @@ public class InvRemapper : EditorWindow
         return path;
     }
 
+    //Saved inventory class
+	[System.Serializable]
+	public class savedInventory
+    {
+		public string avatarName;
+		public int slotAmount;
+		public string[] inventorySlots;
+        public bool[] enableByDefault;
+	}
+
     struct InventoryDirectories
     {
         public string pathToTemplate;
@@ -103,14 +124,15 @@ public class InvRemapper : EditorWindow
             return;
         }
 
+        //Get the path to our object that we want in the inventory in the scene.
         string pathToInv = GetGameObjectPath(target.transform);
+         //remove the avatar name and last entry in the string from the path
+        pathToInv = pathToInv.Replace(GetGameObjectPath(avatar.transform), "");
         string[] splitString = pathToInv.Split('/');
-
-        ArrayUtility.RemoveAt(ref splitString, 0);
-        ArrayUtility.RemoveAt(ref splitString, splitString.Length - 1);
-
+            ArrayUtility.RemoveAt(ref splitString, splitString.Length - 1);
         pathToInv = string.Join("/", splitString);
 
+        //Set up the paths for all of our directorys
         string assetPath = findAssetPath();
         string pathToEditor = assetPath + "/Editor";
         string pathToAnimFolder = assetPath + "/Animations";
@@ -184,6 +206,9 @@ public class InvRemapper : EditorWindow
         {
             objectSlot.transform.gameObject.SetActive(true);
         }
+
+        //Save the data to a .json
+        saveToJson(inventoryDirectories.pathToEditor, inventoryDirectories.pathToGenerated, inventoryDirectories.pathToInv, target);
 
         //Call create Globals
         CreateGlobalDisable(inventoryDirectories, target.name);
@@ -321,6 +346,44 @@ public class InvRemapper : EditorWindow
         AssetDatabase.Refresh();
     }
 
+//Saving to Json file
+	private void saveToJson(string pathToEditor, string pathToGenerated, string pathToInv, Transform target){
+		string pathToJsonTemplate = pathToEditor + "/Templates/AvatarInventorySaveTemp.json";
+		string saveDir = pathToGenerated + "/Saved Inventory";
+		string savedFile = saveDir + "/" + avatar.name + " - Inventory.json";
+		
+		if (!Directory.Exists(saveDir)){
+			Directory.CreateDirectory(saveDir);
+			AssetDatabase.Refresh();
+		}
+		
+		if(!File.Exists(savedFile)){
+			FileUtil.CopyFileOrDirectory(pathToJsonTemplate, savedFile);
+			AssetDatabase.Refresh();
+		}
+		
+		string savedData = File.ReadAllText(savedFile); 
+		savedInventory save = JsonUtility.FromJson<savedInventory>(savedData);
+		
+		save.avatarName = avatar.name;
+		save.slotAmount = itemAmount;
+        
+		for(int j = 0; j < targetPath.Length; j++){
+			if(save.inventorySlots[j] == ""){
+				save.inventorySlots[j] = target.transform.GetHierarchyPath();
+                // save.enableByDefault[j] = enableByDefault[j];
+				break;
+			}
+        }
+
+
+		string newSavedData = JsonUtility.ToJson(save, true);
+		File.WriteAllText(savedFile, newSavedData);
+
+		Debug.Log("Created Save File For: " + avatar.name + "'s inventory!");
+	}
+    
+
     //Helper functions
     // Find File Path
     private string findAssetPath()
@@ -373,4 +436,5 @@ public class InvRemapper : EditorWindow
         });
     }
     //------------------
+    
 }
