@@ -127,7 +127,7 @@ public class InvRemapper : EditorWindow
         //Get the path to our object that we want in the inventory in the scene.
         string pathToInv = GetGameObjectPath(target.transform);
          //remove the avatar name and last entry in the string from the path
-        pathToInv = pathToInv.Replace(GetGameObjectPath(avatar.transform), "");
+        pathToInv = pathToInv.Replace(GetGameObjectPath(avatar.transform) + "/", "");
         string[] splitString = pathToInv.Split('/');
             ArrayUtility.RemoveAt(ref splitString, splitString.Length - 1);
         pathToInv = string.Join("/", splitString);
